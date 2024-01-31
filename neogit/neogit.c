@@ -18,39 +18,45 @@ void make_config(char * username,char * email){
     
 }
 
-//function to respond on neogit init command
-int run_init(int argc,char * argv[]){
-    char cwd [MAX_FILENAME_LEN];//to have the path to our working directory
+//bool function to check if a ".neogit" directory exsist in our working directory or it's parent directories
+bool check_for_repo(char * cwd){
     char temp_dir[MAX_FILENAME_LEN];//to have the current directory(when we are moving in parent directories)
     char root_dir[4];//to have the root directory that we are in it
-    if(getcwd(cwd,sizeof(cwd)) == NULL)
-        return 1;
     strncpy(root_dir,cwd,3);//getting the root from the working directory path
     root_dir[3]='\0';
     bool exists= false;//a boolean variable to check the existance of ".neogit" 
     struct dirent * entry;//moves on files of our directory(from dirent.h library)
     do {
-    DIR * dir = opendir(" . ");//opening current  directory
-    if(dir == NULL)
-        return 1;
-    while((entry = readdir(dir)) != NULL){
-        //now we check the condition that we already have ".neogit" in our directory
-        //DT_DIR:directory type,here we use it to only check the directories(and not files) 
-        if(entry->d_type == DT_DIR && !strcmp(entry->d_name,".neogit")){
-            exists=true;  
+        DIR * dir = opendir(" . ");//opening current  directory
+        if(dir == NULL)
+            return 1;
+        while((entry = readdir(dir)) != NULL){
+            //now we check the condition that we already have ".neogit" in our directory
+            //DT_DIR:directory type,here we use it to only check the directories(and not files) 
+            if(entry->d_type == DT_DIR && !strcmp(entry->d_name,".neogit")){
+                exists=true;  
+            }
         }
-        
+        closedir(dir);    
         if(getcwd(temp_dir,sizeof(temp_dir)) == NULL)
             return 1;
         if(strcmp(temp_dir,root_dir) != 0) {
             if(chdir("..") != 0)
                 return 1;
         }
-    }       
+           
     }while(strcmp(temp_dir,root_dir) != 0); //check the conditions till we get to the root
     if(chdir(cwd) != 0)//going back to our working directory
         return 1;
-    //now we check the exists
+    return exists;
+}
+//function to respond on neogit init command
+int run_init(int argc,char * argv[]){
+    char cwd [MAX_FILENAME_LEN];//to have the path to our working directory
+    if(getcwd(cwd,sizeof(cwd)) == NULL)
+        return 1;
+    //now we check the existance of ".neogit" in our repo
+    bool exists=check_for_repo(cwd);
     if(exists){
         perror("neogit repository already exsists");
     }
