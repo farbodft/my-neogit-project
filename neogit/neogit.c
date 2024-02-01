@@ -1,12 +1,21 @@
+//neogit project-farbod fattahi-student no:402106231
 #include<stdio.h>
 #include<string.h>
-#include<dirent.h>
-#include<stdbool.h>
+#include<dirent.h>//to manage directories
+#include<stdbool.h>//to use bool variables
 #include<unistd.h>
-#include<windows.h>
 #include<stdlib.h>
 
 #define MAX_FILENAME_LEN 1000
+
+//prototypes
+void backspace(char *,int);
+int check_global_id(char[],char[]);
+int make_hidden_dir(char *,char*);
+bool check_for_repo(char *);
+int run_init(int ,char ** );
+int run_config(int ,char ** );
+int make_config(char *,char *);
 
 void print_command(int argc,char * argv[]){
     for(int i = 1; i < argc;i++){
@@ -15,10 +24,42 @@ void print_command(int argc,char * argv[]){
     fprintf(stdout, "\n");
 }
 
-void make_config(char * username,char * email){
-    
+//function to remove the first n characters of a string
+void backspace(char * str,int n){
+    int len=strlen(str);
+    for(int i=0;i<len;i++){
+        str[i]=str[i+n];
+    }
+    str[len-1]='\0';
 }
 
+//function to check for global infos
+int check_global_id(char username[],char email[]) {
+    char * path_to_glob="C:\\neogit\\global.txt";
+    FILE * file = fopen(path_to_glob,"r");
+    if(file == NULL)
+        return 1;
+    char line[MAX_FILENAME_LEN];
+    fgets(username,MAX_FILENAME_LEN,file);
+    fgets(email,MAX_FILENAME_LEN,file);
+    backspace(username,9);
+    backspace(email,6);
+    fclose(file);
+    return 0;
+}
+
+int make_config(char * username,char * email){
+    FILE * configs = fopen(".neogit/config","w");
+    if(configs == NULL)
+        return 1;
+    fprintf(configs,"username:%s\n",username);
+    fprintf(configs,"email:%s\n",email);
+    fprintf(configs,"current branch:master");
+    fclose(configs);
+    return 0;
+}
+
+//function to make an exsisting directory hidden
 int make_hidden_dir(char * cwd,char * dir_name){
     char path[MAX_FILENAME_LEN];
     strcpy(path,cwd);
@@ -30,6 +71,7 @@ int make_hidden_dir(char * cwd,char * dir_name){
         return 1;
     return 0;
 }
+
 //bool function to check if a ".neogit" directory exsist in our working directory or it's parent directories
 bool check_for_repo(char * cwd){
     char temp_dir[MAX_FILENAME_LEN];//to have the current directory(when we are moving in parent directories)
@@ -41,7 +83,7 @@ bool check_for_repo(char * cwd){
     do {
         DIR * dir = opendir(" . ");//opening current  directory
         if(dir == NULL)
-            return 1;
+            return 0;
         while((entry = readdir(dir)) != NULL){
             //now we check the condition that we already have ".neogit" in our directory
             //DT_DIR:directory type,here we use it to only check the directories(and not files) 
@@ -51,17 +93,18 @@ bool check_for_repo(char * cwd){
         }
         closedir(dir);    
         if(getcwd(temp_dir,sizeof(temp_dir)) == NULL)
-            return 1;
+            return 0;
         if(strcmp(temp_dir,root_dir) != 0) {
             if(chdir("..") != 0)
-                return 1;
+                return 0;
         }
            
     }while(strcmp(temp_dir,root_dir) != 0); //check the conditions till we get to the root
     if(chdir(cwd) != 0)//going back to our working directory
-        return 1;
+        return 0;
     return exists;
 }
+
 //function to respond on neogit init command
 int run_init(int argc,char * argv[]){
     char cwd [MAX_FILENAME_LEN];//to have the path to our working directory
@@ -77,11 +120,27 @@ int run_init(int argc,char * argv[]){
             return 1;
         if(make_hidden_dir(cwd,".neogit") != 0)
             return 1;
+        char * username;
+        char * email;
+        check_global_id(username,email);
+        if(make_config(username,email) != 0)
+            return 1;
     }
     return 0;
     
 }
 
+//function for the config command
+int run_config(int argc,char * argv[]) {
+    if(!strcmp(argv[2],"-global")) {
+        FILE * file=fopen("C:\\neogit\\global.txt","w");
+        if(!strcmp(argv[3],"user.name")){
+            fprintf(file,"username:%s",argv[4]);
+        }
+        else if(!strcmp(argv[3],"user.email")){
+        }
+    }
+}
 int main(int argc, char *argv[]) {
     if(argc<2){
         perror("Please input a valid command:");
@@ -92,7 +151,10 @@ int main(int argc, char *argv[]) {
         run_init(argc,argv);
     }
     else if(!strcmp(argv[1], "config")){
-        fprintf(stdout,"config command has been inputed!\n");
+        char username[MAX_FILENAME_LEN];
+        char email[MAX_FILENAME_LEN];
+        check_global_id(username,email);
+        printf("%s%s",username,email);
     }
     else if(!strcmp(argv[1], "add")){
         fprintf(stdout,"add command has been inputed!\n");
