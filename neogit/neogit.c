@@ -3,19 +3,20 @@
 #include<string.h>
 #include<dirent.h>//to manage directories
 #include<stdbool.h>//to use bool variables
-#include<unistd.h>
+#include<unistd.h>//to use getcwd
 #include<stdlib.h>
+#include<windows.h>
 
 #define MAX_FILENAME_LEN 1000
 
 //prototypes
 void backspace(char *,int);
-int check_global_id(char[],char[]);
+int check_global_id(char *,char *);
 int make_hidden_dir(char *,char*);
 bool check_for_repo(char *);
 int run_init(int ,char ** );
 int run_config(int ,char ** );
-int make_config(char *,char *);
+int make_config(char [],char []);
 
 void print_command(int argc,char * argv[]){
     for(int i = 1; i < argc;i++){
@@ -43,18 +44,20 @@ int check_global_id(char username[],char email[]) {
     fgets(username,MAX_FILENAME_LEN,file);
     fgets(email,MAX_FILENAME_LEN,file);
     backspace(username,9);
+    username[strlen(username)-1]='\0';
     backspace(email,6);
     fclose(file);
     return 0;
 }
 
 int make_config(char * username,char * email){
-    FILE * configs = fopen(".neogit/config","w");
-    if(configs == NULL)
-        return 1;
+    FILE * configs = fopen(".neogit\\config.txt","w");
+    if(configs == NULL){
+        printf("error");
+        return 1;}
     fprintf(configs,"username:%s\n",username);
     fprintf(configs,"email:%s\n",email);
-    fprintf(configs,"current branch:master");
+    fprintf(configs,"current branch:%s\n","master");
     fclose(configs);
     return 0;
 }
@@ -67,7 +70,7 @@ int make_hidden_dir(char * cwd,char * dir_name){
     strcat(path,dir_name);
     char command[MAX_FILENAME_LEN]="attrib +h ";
     strcat(command,path);
-    if(system(command) == 0)
+    if(system(command) != 0)
         return 1;
     return 0;
 }
@@ -120,11 +123,10 @@ int run_init(int argc,char * argv[]){
             return 1;
         if(make_hidden_dir(cwd,".neogit") != 0)
             return 1;
-        char * username;
-        char * email;
+        char username[MAX_FILENAME_LEN];
+        char email[MAX_FILENAME_LEN];
         check_global_id(username,email);
-        if(make_config(username,email) != 0)
-            return 1;
+        make_config(username,email);
     }
     return 0;
     
