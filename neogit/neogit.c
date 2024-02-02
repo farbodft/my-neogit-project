@@ -46,6 +46,7 @@ int check_global_id(char username[],char email[]) {
     backspace(username,9);
     username[strlen(username)-1]='\0';
     backspace(email,6);
+    email[strlen(email)-1]='\0';
     fclose(file);
     return 0;
 }
@@ -135,11 +136,25 @@ int run_init(int argc,char * argv[]){
 //function for the config command
 int run_config(int argc,char * argv[]) {
     if(!strcmp(argv[2],"-global")) {
-        FILE * file=fopen("C:\\neogit\\global.txt","w");
         if(!strcmp(argv[3],"user.name")){
-            fprintf(file,"username:%s",argv[4]);
+            FILE * file=fopen("C:\\neogit\\global.txt","w");
+            fprintf(file,"username:%s\n",argv[4]);
         }
         else if(!strcmp(argv[3],"user.email")){
+            FILE * file=fopen("C:\\neogit\\global.txt","a");
+            fprintf(file,"email:%s\n",argv[4]);
+            fprintf(file,"current banch:master\n");
+        }
+    }
+    else{
+        if(!strcmp(argv[2],"user.name")){
+            FILE * file= fopen(".neogit\\config.txt","w");
+            fprintf(file,"username:%s\n",argv[3]);
+        }
+        else if(!strcmp(argv[2],"user.email")){
+            FILE * file = fopen(".neogit\\config.txt","a");
+            fprintf(file,"email:%s\n",argv[3]);
+            fprintf(file,"branch: master");
         }
     }
 }
@@ -153,10 +168,7 @@ int main(int argc, char *argv[]) {
         run_init(argc,argv);
     }
     else if(!strcmp(argv[1], "config")){
-        char username[MAX_FILENAME_LEN];
-        char email[MAX_FILENAME_LEN];
-        check_global_id(username,email);
-        printf("%s%s",username,email);
+        run_config(argc,argv);
     }
     else if(!strcmp(argv[1], "add")){
         fprintf(stdout,"add command has been inputed!\n");
