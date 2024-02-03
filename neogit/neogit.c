@@ -19,6 +19,7 @@ int run_config(int ,char ** );
 int make_config(char [],char []);
 int run_add(int ,char **);
 int add_to_staging(char *);
+int run_branch(int ,char **);
 
 void print_command(int argc,char * argv[]){
     for(int i = 1; i < argc;i++){
@@ -133,10 +134,10 @@ int run_init(int argc,char * argv[]){
         check_global_id(username,email);
         make_config(username,email);
         FILE * cur_branch = fopen(".neogit\\cur_branch.txt","w");
-        fprintf(cur_branch,"current branch:%s\n","master");
+        fprintf(cur_branch,"%s\n","master");
         fclose(cur_branch);
         FILE * branchs = fopen(".neogit\\all_branchs.txt","w");
-        fprintf(branchs,"%s","master");
+        fprintf(branchs,"%s\n","master");
         fclose(branchs);
     }
     return 0;
@@ -185,7 +186,7 @@ int run_config(int argc,char * argv[]) {
             fclose(alias_loc);
         }
         else
-            perror("invalid command");
+            perror("Invalid command");
     }
 }
 
@@ -223,6 +224,35 @@ int add_to_staging(char * pathtofile){
         fprintf(stdout,"File added succesfully");
 }
 
+//function for branch command
+int run_branch(int argc,char * argv[]){
+    if(argc == 2){
+        FILE * file = fopen(".neogit\\all_branchs.txt","r");
+        char line[MAX_FILENAME_LEN];
+        while(fgets(line,sizeof(line),file) != NULL){
+            fprintf(stdout,"%s",line);
+        }
+        fclose(file);
+    }
+    else if (argc == 3){
+        FILE * all = fopen(".neogit\\all_branchs.txt","a+");
+        char line[MAX_FILENAME_LEN];
+        while(fgets(line,sizeof(line),all) != NULL){
+            if(strcmp(argv[2],line) == 0){
+                fprintf(stdout,"This branch already exists!");
+                return 1;
+            }
+        }
+        fprintf(all,"%s\n",argv[2]);
+        fclose(all);
+        FILE * cur = fopen(".neogit\\cur_branch.txt","w");
+        fprintf(cur,"%s",argv[2]);
+        fclose(cur);
+    }
+    else 
+        fprintf(stdout,"Invalid command");
+}
+
 int main(int argc, char *argv[]) {
     if(argc<2){
         perror("Please input a valid command:");
@@ -251,7 +281,7 @@ int main(int argc, char *argv[]) {
         fprintf(stdout,"log command has been inputed!\n");   
     }
     else if(!strcmp(argv[1], "branch")){
-        fprintf(stdout,"branch command has been inputed!\n");   
+        run_branch(argc,argv);  
     }
     else if(!strcmp(argv[1], "checkout")){
         fprintf(stdout,"checkout command has been inputed!\n");   
