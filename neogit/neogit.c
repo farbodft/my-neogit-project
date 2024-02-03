@@ -17,6 +17,8 @@ bool check_for_repo(char *);
 int run_init(int ,char ** );
 int run_config(int ,char ** );
 int make_config(char [],char []);
+int run_add(int ,char **);
+int add_to_staging(char *);
 
 void print_command(int argc,char * argv[]){
     for(int i = 1; i < argc;i++){
@@ -51,6 +53,7 @@ int check_global_id(char username[],char email[]) {
     return 0;
 }
 
+//function to make config.txt in ".neogit"
 int make_config(char * username,char * email){
     FILE * configs = fopen(".neogit\\config.txt","w");
     if(configs == NULL){
@@ -123,6 +126,8 @@ int run_init(int argc,char * argv[]){
             return 1;
         if(make_hidden_dir(cwd,".neogit") != 0)
             return 1;
+        if(mkdir(".neogit\\staging") != 0)
+            return 1;
         char username[MAX_FILENAME_LEN];
         char email[MAX_FILENAME_LEN];
         check_global_id(username,email);
@@ -184,6 +189,40 @@ int run_config(int argc,char * argv[]) {
     }
 }
 
+//function for add command
+int run_add(int argc,char * argv[]){
+    if(argc < 3){
+        perror("no file is chosen");
+        return 1;
+    }
+    if(!strcmp(argv[2],"-f")){
+        for(int i=3;i<argc;i++){
+            printf(argv[i]);
+            if(add_to_staging(argv[i]) != 0)
+                return 1;
+        }
+    }
+    else if(!strcmp(argv[2],"-n")){
+        //show all files in root directory and check if they're staged
+    }
+    else
+        return add_to_staging(argv[2]);
+}
+
+//function to add file to staging area
+int add_to_staging(char * pathtofile){
+    char command[MAX_FILENAME_LEN];
+    char cwd[MAX_FILENAME_LEN];
+    getcwd(cwd,sizeof(cwd));
+    strcat(cwd,"\\");
+    strcat(cwd,pathtofile);
+    sprintf(command,"copy %s %s",pathtofile,".neogit\\staging");
+    if(system(command) != 0)
+        return 1;
+    else
+        fprintf(stdout,"File added succesfully");
+}
+
 int main(int argc, char *argv[]) {
     if(argc<2){
         perror("Please input a valid command:");
@@ -197,13 +236,25 @@ int main(int argc, char *argv[]) {
         run_config(argc,argv);
     }
     else if(!strcmp(argv[1], "add")){
-        fprintf(stdout,"add command has been inputed!\n");
+        run_add(argc,argv);
     }
     else if(!strcmp(argv[1], "status")){
         fprintf(stdout,"status command has been inputed!\n");
     }
     else if(!strcmp(argv[1], "commit")){
         fprintf(stdout,"commit command has been inputed!\n");
+    }
+    else if(!strcmp(argv[1], "reset")){
+        fprintf(stdout,"reset command has been inputed!\n");   
+    }
+    else if(!strcmp(argv[1], "log")){
+        fprintf(stdout,"log command has been inputed!\n");   
+    }
+    else if(!strcmp(argv[1], "branch")){
+        fprintf(stdout,"branch command has been inputed!\n");   
+    }
+    else if(!strcmp(argv[1], "checkout")){
+        fprintf(stdout,"checkout command has been inputed!\n");   
     }
     else{
         fprintf(stdout,"Not a valid command!\n");
