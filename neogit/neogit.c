@@ -157,6 +157,13 @@ int run_config(int argc,char * argv[]) {
                 return 1;
             fprintf(local,"email:%s\n",argv[4]);
         }
+        else if(!strcmp(argv[3],"alias.")){
+            FILE * alias_glob=fopen("C:\\neogit\\alias.txt","a");
+            fprintf(alias_glob,"neogit %s %s\n",argv[4],argv[5]);
+            fclose(alias_glob);
+        }
+        else
+            perror("invalid command");
     }
     else{
         if(!strcmp(argv[2],"user.name")){
@@ -167,8 +174,16 @@ int run_config(int argc,char * argv[]) {
             FILE * file = fopen(".neogit\\config.txt","a");
             fprintf(file,"email:%s\n",argv[3]);
         }
+        else if(!strcmp(argv[2],"alias.")){
+            FILE * alias_loc=fopen(".neogit\\alias.txt","a");
+            fprintf(alias_loc,"neogit %s %s\n",argv[3],argv[4]);
+            fclose(alias_loc);
+        }
+        else
+            perror("invalid command");
     }
 }
+
 int main(int argc, char *argv[]) {
     if(argc<2){
         perror("Please input a valid command:");
