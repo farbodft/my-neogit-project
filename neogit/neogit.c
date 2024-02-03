@@ -58,7 +58,6 @@ int make_config(char * username,char * email){
         return 1;}
     fprintf(configs,"username:%s\n",username);
     fprintf(configs,"email:%s\n",email);
-    fprintf(configs,"current branch:%s\n","master");
     fclose(configs);
     return 0;
 }
@@ -128,6 +127,12 @@ int run_init(int argc,char * argv[]){
         char email[MAX_FILENAME_LEN];
         check_global_id(username,email);
         make_config(username,email);
+        FILE * cur_branch = fopen(".neogit\\cur_branch.txt","w");
+        fprintf(cur_branch,"current branch:%s\n","master");
+        fclose(cur_branch);
+        FILE * branchs = fopen(".neogit\\all_branchs.txt","w");
+        fprintf(branchs,"%s","master");
+        fclose(branchs);
     }
     return 0;
     
@@ -139,11 +144,18 @@ int run_config(int argc,char * argv[]) {
         if(!strcmp(argv[3],"user.name")){
             FILE * file=fopen("C:\\neogit\\global.txt","w");
             fprintf(file,"username:%s\n",argv[4]);
+            FILE * local=fopen(".neogit\\config.txt","w");
+            if(local == NULL)
+                return 1;
+            fprintf(local,"username:%s\n",argv[4]);
         }
         else if(!strcmp(argv[3],"user.email")){
             FILE * file=fopen("C:\\neogit\\global.txt","a");
             fprintf(file,"email:%s\n",argv[4]);
-            fprintf(file,"current banch:master\n");
+            FILE * local=fopen(".neogit\\config.txt","w");
+            if(local == NULL)
+                return 1;
+            fprintf(local,"email:%s\n",argv[4]);
         }
     }
     else{
@@ -154,7 +166,6 @@ int run_config(int argc,char * argv[]) {
         else if(!strcmp(argv[2],"user.email")){
             FILE * file = fopen(".neogit\\config.txt","a");
             fprintf(file,"email:%s\n",argv[3]);
-            fprintf(file,"branch: master");
         }
     }
 }
