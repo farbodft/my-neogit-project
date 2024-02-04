@@ -20,6 +20,7 @@ int make_config(char [],char []);
 int run_add(int ,char **);
 int add_to_staging(char *);
 int run_branch(int ,char **);
+int add_sev_to_staging(int ,char **);
 
 void print_command(int argc,char * argv[]){
     for(int i = 1; i < argc;i++){
@@ -197,14 +198,38 @@ int run_add(int argc,char * argv[]){
         return 1;
     }
     if(!strcmp(argv[2],"-f")){
-        for(int i=3;i<argc;i++){
-            printf(argv[i]);
-            if(add_to_staging(argv[i]) != 0)
-                return 1;
-        }
+        return add_sev_to_staging(argc,argv);
     }
     else if(!strcmp(argv[2],"-n")){
-        //show all files in root directory and check if they're staged
+        // show all files in root directory and check if they're staged
+        struct dirent *root;
+        struct dirent *staged;
+        DIR *dir = opendir(".");
+        DIR *staging = opendir(".neogit\\staging");
+
+        if (dir == NULL || staging == NULL)
+            return 1;
+
+        while ((root = readdir(dir)) != NULL) {
+            int exists = 0;
+            // ignore "." and ".." and ".neogit"
+            if (!strcmp(root->d_name, ".") || !strcmp(root->d_name, "..") || !strcmp(root->d_name, ".neogit"))
+                continue;
+
+            rewinddir(staging); // Reset the directory pointer to the beginning of the stream
+
+            while ((staged = readdir(staging)) != NULL) {
+                if (!strcmp(root->d_name, staged->d_name)) {
+                    exists = 1;
+                    break;
+                }
+            }
+
+            fprintf(stdout, "%s - %s\n", root->d_name, exists ? "Staged" : "Not Staged");
+        }
+
+        closedir(dir);
+        closedir(staging);
     }
     else
         return add_to_staging(argv[2]);
@@ -217,11 +242,29 @@ int add_to_staging(char * pathtofile){
     getcwd(cwd,sizeof(cwd));
     strcat(cwd,"\\");
     strcat(cwd,pathtofile);
-    sprintf(command,"copy %s %s",pathtofile,".neogit\\staging");
+    sprintf(command,"copy %s %s",cwd,".neogit\\staging");
     if(system(command) != 0)
         return 1;
     else
         fprintf(stdout,"File added succesfully");
+}
+
+//function to add several files to staging area
+int add_sev_to_staging(int argc,char * argv[]){
+    for(int i=3;i<argc;i++){
+        char command[MAX_FILENAME_LEN];
+        char cwd[MAX_FILENAME_LEN];
+        getcwd(cwd,sizeof(cwd));
+        strcat(cwd,"\\");
+        strcat(cwd,argv[i]);
+        sprintf(command,"copy %s %s",cwd,".neogit\\staging");
+        if(system(command) != 0){
+            fprintf(stdout,"File %s not found\n",argv[i]);
+        }
+        else
+            fprintf(stdout,"File %s added succesfully\n",argv[i]);   
+    }
+    return 0;
 }
 
 //function for branch command
