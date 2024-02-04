@@ -21,6 +21,9 @@ int run_add(int ,char **);
 int add_to_staging(char *);
 int run_branch(int ,char **);
 int add_sev_to_staging(int ,char **);
+int run_reset(int ,char **);
+int remove_from_staging(char *);
+int remove_sev_from_staging(int ,char **);
 
 void print_command(int argc,char * argv[]){
     for(int i = 1; i < argc;i++){
@@ -244,13 +247,14 @@ int add_to_staging(char * pathtofile){
     strcat(cwd,pathtofile);
     sprintf(command,"copy %s %s",cwd,".neogit\\staging");
     if(system(command) != 0)
-        return 1;
+        fprintf(stdout,"File not found");
     else {
-        fprintf(stdout,"File added succesfully");
+        fprintf(stdout,"File %s added succesfully\n",pathtofile);
         FILE * file = fopen (".neogit\\lastadd.txt","w");
         fprintf(file,"%s\n",cwd);  
         fclose(file); 
     }
+    return 0;
 }
 
 //function to add several files to staging area
@@ -306,6 +310,49 @@ int run_branch(int argc,char * argv[]){
         fprintf(stdout,"Invalid command");
 }
 
+//function for reset command
+int run_reset(int argc,char * argv[]){
+    if(argc < 3)
+        fprintf(stdout,"No file is chosen!");
+    else if (!strcmp(argv[2],"-undo")){
+        //remove the last add
+    }
+    else if(!strcmp(argv[2],"-f")){
+        return remove_sev_from_staging(argc,argv);
+    }
+    else{
+        return remove_from_staging(argv[2]);
+    }
+}
+
+//function to remove file from staging area
+int remove_from_staging(char * pathtofile) {
+    char command[MAX_FILENAME_LEN];
+    sprintf(command,"del .neogit\\staging\\%s" , pathtofile);
+    if(system(command) != 0) {
+        fprintf(stdout,"File %s not found\n",pathtofile);
+    }
+    else {
+        fprintf(stdout,"File %s removed succesfully\n",pathtofile); 
+    }
+    return 0;
+}
+
+//function to remove several files
+int remove_sev_from_staging (int argc,char * argv[]){
+    for(int i=3;i<argc;i++){
+        char command[MAX_FILENAME_LEN];
+        sprintf(command,"del .neogit\\staging\\%s" , argv[i]);
+        if(system(command) != 0) {
+            fprintf(stdout,"File %s not found\n",argv[i]);
+        }
+        else {
+            fprintf(stdout,"File %s removed succesfully\n",argv[i]); 
+        }    
+    }
+    return 0;
+}
+
 int main(int argc, char *argv[]) {
     if(argc<2){
         perror("Please input a valid command:");
@@ -328,7 +375,7 @@ int main(int argc, char *argv[]) {
         fprintf(stdout,"commit command has been inputed!\n");
     }
     else if(!strcmp(argv[1], "reset")){
-        fprintf(stdout,"reset command has been inputed!\n");   
+        run_reset(argc,argv); 
     }
     else if(!strcmp(argv[1], "log")){
         fprintf(stdout,"log command has been inputed!\n");   
