@@ -316,6 +316,15 @@ int run_reset(int argc,char * argv[]){
         fprintf(stdout,"No file is chosen!");
     else if (!strcmp(argv[2],"-undo")){
         //remove the last add
+        FILE * add=fopen(".neogit\\lastadd.txt","r");
+        char file[MAX_FILENAME_LEN];
+        while(fgets(file,sizeof(file),add) != NULL){
+            int len=strlen(file);
+            file[len-1]='\0';
+            puts(file);
+            remove_from_staging(file);
+        }
+        fclose(add);
     }
     else if(!strcmp(argv[2],"-f")){
         return remove_sev_from_staging(argc,argv);
@@ -328,7 +337,7 @@ int run_reset(int argc,char * argv[]){
 //function to remove file from staging area
 int remove_from_staging(char * pathtofile) {
     char command[MAX_FILENAME_LEN];
-    sprintf(command,"del .neogit\\staging\\%s" , pathtofile);
+    sprintf(command,"del .neogit\\staging\\%s",pathtofile);
     if(system(command) != 0) {
         fprintf(stdout,"File %s not found\n",pathtofile);
     }
