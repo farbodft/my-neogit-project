@@ -245,12 +245,18 @@ int add_to_staging(char * pathtofile){
     sprintf(command,"copy %s %s",cwd,".neogit\\staging");
     if(system(command) != 0)
         return 1;
-    else
+    else {
         fprintf(stdout,"File added succesfully");
+        FILE * file = fopen (".neogit\\lastadd.txt","w");
+        fprintf(file,"%s\n",cwd);  
+        fclose(file); 
+    }
 }
 
 //function to add several files to staging area
 int add_sev_to_staging(int argc,char * argv[]){
+    FILE * file=fopen(".neogit\\lastadd.txt","w");
+    fclose(file);
     for(int i=3;i<argc;i++){
         char command[MAX_FILENAME_LEN];
         char cwd[MAX_FILENAME_LEN];
@@ -261,8 +267,12 @@ int add_sev_to_staging(int argc,char * argv[]){
         if(system(command) != 0){
             fprintf(stdout,"File %s not found\n",argv[i]);
         }
-        else
-            fprintf(stdout,"File %s added succesfully\n",argv[i]);   
+        else{
+            fprintf(stdout,"File %s added succesfully\n",argv[i]);
+            file = fopen (".neogit\\lastadd.txt","a");
+            fprintf(file,"%s\n",cwd);  
+            fclose(file);
+        }   
     }
     return 0;
 }
