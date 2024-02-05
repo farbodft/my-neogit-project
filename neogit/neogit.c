@@ -251,7 +251,7 @@ int add_to_staging(char * pathtofile){
     else {
         fprintf(stdout,"File %s added succesfully\n",pathtofile);
         FILE * file = fopen (".neogit\\lastadd.txt","w");
-        fprintf(file,"%s\n",cwd);  
+        fprintf(file,"%s\n",pathtofile);  
         fclose(file); 
     }
     return 0;
@@ -274,7 +274,7 @@ int add_sev_to_staging(int argc,char * argv[]){
         else{
             fprintf(stdout,"File %s added succesfully\n",argv[i]);
             file = fopen (".neogit\\lastadd.txt","a");
-            fprintf(file,"%s\n",cwd);  
+            fprintf(file,"%s\n",argv[i]);  
             fclose(file);
         }   
     }
@@ -321,7 +321,6 @@ int run_reset(int argc,char * argv[]){
         while(fgets(file,sizeof(file),add) != NULL){
             int len=strlen(file);
             file[len-1]='\0';
-            puts(file);
             remove_from_staging(file);
         }
         fclose(add);
@@ -339,10 +338,7 @@ int remove_from_staging(char * pathtofile) {
     char command[MAX_FILENAME_LEN];
     sprintf(command,"del .neogit\\staging\\%s",pathtofile);
     if(system(command) != 0) {
-        fprintf(stdout,"File %s not found\n",pathtofile);
-    }
-    else {
-        fprintf(stdout,"File %s removed succesfully\n",pathtofile); 
+        return 1;
     }
     return 0;
 }
@@ -353,11 +349,8 @@ int remove_sev_from_staging (int argc,char * argv[]){
         char command[MAX_FILENAME_LEN];
         sprintf(command,"del .neogit\\staging\\%s" , argv[i]);
         if(system(command) != 0) {
-            fprintf(stdout,"File %s not found\n",argv[i]);
-        }
-        else {
-            fprintf(stdout,"File %s removed succesfully\n",argv[i]); 
-        }    
+            return 1;
+        }   
     }
     return 0;
 }
