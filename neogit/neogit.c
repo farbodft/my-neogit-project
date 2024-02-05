@@ -1,6 +1,7 @@
 /*neogit project
 name:farbod fattahi
 student no:402106231*/
+//libraries that i used
 #include<stdio.h>
 #include<string.h>
 #include<dirent.h>//to manage directories
@@ -33,7 +34,10 @@ int find_last_commit();
 int update_last_commit_and_head(int );
 int do_commit(char * );
 int commit_info(char * ,char * ,char * ,int );
+int run_set(int ,char **);
+int run_replace(int ,char **);
 
+//function to print given command
 void print_command(int argc,char * argv[]){
     for(int i = 1; i < argc;i++){
         fprintf(stdout, "%s", argv[i]);
@@ -524,6 +528,26 @@ int run_set(int argc,char * argv[]){
     fclose(file);
     return 0;
 }
+
+//function for replace command
+int run_replace(int argc,char * argv[]){
+    char path [MAX_FILENAME_LEN]=".neogit\\shortcuts\\";
+    strcat(path,argv[5]);
+    strcat(path,".txt");
+    FILE * file = fopen(path,"r");//to check if the file exists
+    if(file == NULL){
+        fprintf(stdout,"The given shortcut does not exist!");
+        return 1;
+    }
+    fclose(file);
+    file = fopen(path,"w");
+    if(file == NULL)
+        return 1;
+    fprintf(file,"%s",argv[3]);
+    fclose(file);
+    return 0;
+}
+
 int main(int argc, char *argv[]) {
     if(argc<2){
         perror("Please input a valid command:");
@@ -549,7 +573,7 @@ int main(int argc, char *argv[]) {
         run_set(argc,argv);
     }
     else if(!strcmp(argv[1],"replace")){
-        print_command(argc,argv);
+        run_replace(argc,argv);
     }
     else if(!strcmp(argv[1],"remove")){
         print_command(argc,argv);
