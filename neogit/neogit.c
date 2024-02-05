@@ -32,6 +32,7 @@ int is_empty(char *);
 int find_last_commit();
 int update_last_commit_and_head(int );
 int do_commit(char * );
+int commit_info(char * ,char * ,char * ,int );
 
 void print_command(int argc,char * argv[]){
     for(int i = 1; i < argc;i++){
@@ -153,7 +154,7 @@ int run_init(int argc,char * argv[]){
         fprintf(cur_branch,"%s\n","master");
         fclose(cur_branch);
         FILE * branchs = fopen(".neogit\\all_branchs.txt","w");
-        fprintf(branchs,"%s\n","master");
+        fprintf(branchs,"%s","master");
         fclose(branchs);
         int n=10000;
         FILE * commit = fopen(".neogit\\lastcommit.txt","w");
@@ -452,9 +453,11 @@ int do_commit(char * message) {
         strcat(sendto,commitidstr);
         if (mkdir(sendto) != 0)//making a directory for the new commit
             return 1;
+        int times=0;
         while((entry=readdir(stage)) != NULL){
             if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, ".."))
                 continue;
+            times ++;
             char pathto [MAX_FILENAME_LEN]=".neogit\\staging\\";
             strcat(pathto,entry->d_name);
             char command [MAX_FILENAME_LEN];
@@ -470,8 +473,43 @@ int do_commit(char * message) {
         // Convert the current time to string format
         char* timeString = ctime(&currentTime);
         fprintf(stdout,"commit id:%s\ncommiting time:%scommit message:%s\n",commitidstr,timeString,message);
+        if(commit_info(message,commitidstr,timeString,times) != 0)
+            return 1;
 
         return 0;
+}
+
+//function to save commit info in a text file
+int commit_info(char * message,char * commitidstr,char * time,int times){
+    char filename [MAX_FILENAME_LEN] = ".neogit\\commits\\";
+    strcat(filename,commitidstr);
+    strcat(filename,"\\");
+    strcat(filename,commitidstr);
+    strcat(filename,".txt");
+    FILE * file = fopen(filename,"a");
+    if(file == NULL)
+        return 1;
+    fprintf(file,"commiting time:%s",time);
+    fprintf(file,"commit message:%s\n",message);
+    FILE * username=fopen(".neogit\\config.txt","r");
+    if(username == NULL)
+        return 1;
+    char author[MAX_FILENAME_LEN];
+    fgets(author,sizeof(author),username);
+    fclose(username);
+    backspace(author,9);
+    fprintf(file,"commit author:%s",author);
+    fprintf(file,"commit id:%s\n",commitidstr);
+    FILE * branch=fopen(".neogit\\cur_branch.txt","r");
+    if(branch == NULL)
+        return 1;
+    char curbranch [MAX_FILENAME_LEN];
+    fgets(curbranch,sizeof(curbranch),branch);
+    fclose(branch);
+    fprintf(file,"branch:%s\n",curbranch);
+    fprintf(file,"number of files:%d\n",times);
+    fclose(file);
+    return 0;
 }
 
 int main(int argc, char *argv[]) {
