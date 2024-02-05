@@ -36,6 +36,7 @@ int do_commit(char * );
 int commit_info(char * ,char * ,char * ,int );
 int run_set(int ,char **);
 int run_replace(int ,char **);
+int run_remove(int ,char **);
 
 //function to print given command
 void print_command(int argc,char * argv[]){
@@ -548,6 +549,25 @@ int run_replace(int argc,char * argv[]){
     return 0;
 }
 
+//function for remove command
+int run_remove(int argc,char * argv[]){
+    char path[MAX_FILENAME_LEN]=".neogit\\shortcuts\\";
+    strcat(path,argv[3]);
+    strcat(path,".txt");
+    FILE * file = fopen(path,"r");
+    if(file == NULL){
+        fprintf(stdout,"The given shortcut does not exist!");
+        return 1;
+    }
+    fclose(file);
+    char command [MAX_FILENAME_LEN]="del ";
+    strcat(command,path);
+    if(system(command) != 0)
+        return 1;
+    fprintf(stdout,"Shortcut deleted successfully");
+    return 0;
+}
+
 int main(int argc, char *argv[]) {
     if(argc<2){
         perror("Please input a valid command:");
@@ -576,7 +596,7 @@ int main(int argc, char *argv[]) {
         run_replace(argc,argv);
     }
     else if(!strcmp(argv[1],"remove")){
-        print_command(argc,argv);
+        run_remove(argc,argv);
     }
     else if(!strcmp(argv[1], "reset")){
         run_reset(argc,argv); 
