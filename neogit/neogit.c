@@ -1,11 +1,13 @@
-//neogit project-farbod fattahi-student no:402106231
+/*neogit project
+name:farbod fattahi
+student no:402106231*/
 #include<stdio.h>
 #include<string.h>
 #include<dirent.h>//to manage directories
 #include<stdbool.h>//to use bool variables
 #include<unistd.h>//to use getcwd
 #include<stdlib.h>
-#include<windows.h>
+#include<time.h>//to get current date
 
 #define MAX_FILENAME_LEN 1000
 #define MAX_COMMIT_MSG_LEN 72
@@ -462,6 +464,13 @@ int do_commit(char * message) {
         }
         update_last_commit_and_head(commitid);//update the last commit id
         closedir(stage);
+        // Get the current time
+        time_t currentTime;
+        time(&currentTime);
+        // Convert the current time to string format
+        char* timeString = ctime(&currentTime);
+        fprintf(stdout,"commit id:%s\ncommiting time:%scommit message:%s\n",commitidstr,timeString,message);
+
         return 0;
 }
 
