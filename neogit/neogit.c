@@ -389,7 +389,18 @@ int run_commit(int argc,char * argv[]){
             return 1;
     }
     else if(!strcmp(argv[2],"-s")){
-        //shortcut
+        char path [MAX_FILENAME_LEN]=".neogit\\shortcuts\\";
+        strcat(path,argv[3]);
+        strcat(path,".txt");
+        FILE * file = fopen(path,"r");
+        if(file == NULL)
+            return 1;
+        char shortcut [MAX_FILENAME_LEN];
+        fgets(shortcut,sizeof(shortcut),file);
+        fclose(file);
+        puts(shortcut);
+        do_commit(shortcut);
+        return 0;
     }
 }
 
