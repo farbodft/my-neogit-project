@@ -8,6 +8,7 @@
 #include<windows.h>
 
 #define MAX_FILENAME_LEN 1000
+#define MAX_COMMIT_MSG_LEN 72
 
 //prototypes
 void backspace(char *,int);
@@ -24,6 +25,11 @@ int add_sev_to_staging(int ,char **);
 int run_reset(int ,char **);
 int remove_from_staging(char *);
 int remove_sev_from_staging(int ,char **);
+int run_commit(int ,char **);
+int is_empty(char *);
+int find_last_commit();
+int update_last_commit_and_head(int );
+int do_commit(char * );
 
 void print_command(int argc,char * argv[]){
     for(int i = 1; i < argc;i++){
@@ -133,6 +139,10 @@ int run_init(int argc,char * argv[]){
             return 1;
         if(mkdir(".neogit\\staging") != 0)
             return 1;
+        if(mkdir(".neogit\\commits") != 0)
+            return 1;
+        if(mkdir(".neogit\\shortcuts") != 0)
+            return 1;
         char username[MAX_FILENAME_LEN];
         char email[MAX_FILENAME_LEN];
         check_global_id(username,email);
@@ -143,6 +153,13 @@ int run_init(int argc,char * argv[]){
         FILE * branchs = fopen(".neogit\\all_branchs.txt","w");
         fprintf(branchs,"%s\n","master");
         fclose(branchs);
+        int n=10000;
+        FILE * commit = fopen(".neogit\\lastcommit.txt","w");
+        fprintf(commit,"%d",n);
+        fclose(commit);
+        FILE * head = fopen(".neogit\\head.txt","w");
+        fprintf(head,"%d",n);
+        fclose(head);
     }
     return 0;
     
@@ -355,6 +372,99 @@ int remove_sev_from_staging (int argc,char * argv[]){
     return 0;
 }
 
+//function for commit command
+int run_commit(int argc,char * argv[]){
+    if(argc < 4)
+        fprintf(stdout,"Commit message is not given!");
+    else if (!strcmp(argv[2],"-m")){
+        if(do_commit(argv[3]) != 0)
+            return 1;
+    }
+    else if(!strcmp(argv[2],"-s")){
+        //shortcut
+    }
+}
+
+//function to check if a directory is empty or not
+int is_empty(char * path) {
+    int isempty = 1;
+    DIR * dir = opendir(path);
+    struct dirent * entry;
+
+    while((entry = readdir(dir)) != NULL) {
+        if(strcmp(entry->d_name,".") != 0 && strcmp(entry->d_name, "..") != 0) {
+            isempty = 0;
+            break;
+        }
+    }
+    closedir(dir);
+    return isempty;
+}
+
+//function to read the last commit id
+int find_last_commit(){
+    FILE * commit = fopen(".neogit\\lastcommit.txt","r");
+    if(commit == NULL)
+        return 1;
+    int lastcommit;
+    fscanf(commit,"%d",&lastcommit);
+    return lastcommit;
+}
+
+//function to update last commit id
+int update_last_commit_and_head(int lastcommit) {
+    FILE * file = fopen(".neogit\\head.txt","w");
+    if(file == NULL)
+        return 1;
+    fprintf(file,"%d",lastcommit);
+    fclose(file);
+    file = fopen(".neogit\\lastcommit.txt","w");
+    if(file == NULL)
+        return 1;
+    fprintf(file,"%d",lastcommit);
+    fclose(file);
+    return 0;
+}
+
+//function to commit
+int do_commit(char * message) {
+    int len=strlen(message);
+        if(len>MAX_COMMIT_MSG_LEN){
+            fprintf(stdout,"Commit message is to long!");
+            return 1;
+        }
+        //open staging area to move files in it to commits
+        DIR * stage=opendir(".neogit\\staging");
+        struct dirent * entry;
+        if(stage == NULL)
+            return 1;
+        int empty=is_empty(".neogit\\staging");
+        if(empty){
+            fprintf(stdout,"No file exist in staging area!");
+            return 1;
+        }
+        char sendto [MAX_FILENAME_LEN]=".neogit\\commits\\";
+        int commitid = find_last_commit()+1;//making the new commit id
+        char commitidstr [MAX_FILENAME_LEN];//casting commit id into a string
+        sprintf(commitidstr,"%d",commitid);
+        strcat(sendto,commitidstr);
+        if (mkdir(sendto) != 0)//making a directory for the new commit
+            return 1;
+        while((entry=readdir(stage)) != NULL){
+            if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, ".."))
+                continue;
+            char pathto [MAX_FILENAME_LEN]=".neogit\\staging\\";
+            strcat(pathto,entry->d_name);
+            char command [MAX_FILENAME_LEN];
+            sprintf(command,"move %s %s",pathto,sendto);//make system command to move files from staging area to commit
+            if(system(command) != 0)
+                return 1;    
+        }
+        update_last_commit_and_head(commitid);//update the last commit id
+        closedir(stage);
+        return 0;
+}
+
 int main(int argc, char *argv[]) {
     if(argc<2){
         perror("Please input a valid command:");
@@ -374,7 +484,16 @@ int main(int argc, char *argv[]) {
         fprintf(stdout,"status command has been inputed!\n");
     }
     else if(!strcmp(argv[1], "commit")){
-        fprintf(stdout,"commit command has been inputed!\n");
+        run_commit(argc,argv);
+    }
+    else if(!strcmp(argv[1],"set")){
+        print_command(argc,argv);
+    }
+    else if(!strcmp(argv[1],"replace")){
+        print_command(argc,argv);
+    }
+    else if(!strcmp(argv[1],"remove")){
+        print_command(argc,argv);
     }
     else if(!strcmp(argv[1], "reset")){
         run_reset(argc,argv); 
