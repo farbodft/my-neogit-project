@@ -512,6 +512,18 @@ int commit_info(char * message,char * commitidstr,char * time,int times){
     return 0;
 }
 
+//function for set command
+int run_set(int argc,char * argv[]){
+    char path [MAX_FILENAME_LEN]=".neogit\\shortcuts\\";
+    strcat(path,argv[5]);
+    strcat(path,".txt");
+    FILE * file = fopen(path,"w");
+    if(file == NULL)
+        return 1;
+    fprintf(file,"%s",argv[3]);
+    fclose(file);
+    return 0;
+}
 int main(int argc, char *argv[]) {
     if(argc<2){
         perror("Please input a valid command:");
@@ -534,7 +546,7 @@ int main(int argc, char *argv[]) {
         run_commit(argc,argv);
     }
     else if(!strcmp(argv[1],"set")){
-        print_command(argc,argv);
+        run_set(argc,argv);
     }
     else if(!strcmp(argv[1],"replace")){
         print_command(argc,argv);
