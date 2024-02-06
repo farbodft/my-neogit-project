@@ -603,6 +603,31 @@ int run_log(int argc,char * argv[]){
             fprintf(stdout,"\n");
             fclose(file);
         }
+        return 0;
+    }
+    else if(!strcmp(argv[2],"-n")){
+        int last=find_last_commit();
+        int n=atoi(argv[3]);
+        int first=last+1-n;
+        for(int i=last;i>=first;i--){
+            char path [MAX_FILENAME_LEN] = ".neogit\\commits\\";
+            char filename [MAX_FILENAME_LEN];
+            sprintf(filename,"%d",i);
+            strcat(path,filename);
+            strcat(path,"\\");
+            strcat(path,filename);
+            strcat(path,".txt");
+            FILE * file = fopen(path,"r");
+            if(file == NULL)
+                return 1;
+            char line[MAX_FILENAME_LEN];
+            while(fgets(line,sizeof(line),file)){
+                fprintf(stdout,"%s",line);
+            }
+            fprintf(stdout,"\n");
+            fclose(file);
+        }
+        return 0;   
     }
 }
 int main(int argc, char *argv[]) {
