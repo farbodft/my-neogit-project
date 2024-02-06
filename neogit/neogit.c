@@ -37,6 +37,7 @@ int commit_info(char * ,char * ,char * ,int );
 int run_set(int ,char **);
 int run_replace(int ,char **);
 int run_remove(int ,char **);
+int run_log(int ,char **);
 
 //function to print given command
 void print_command(int argc,char * argv[]){
@@ -579,6 +580,31 @@ int run_remove(int argc,char * argv[]){
     return 0;
 }
 
+//function for log command
+int run_log(int argc,char * argv[]){
+    if(argc == 2){
+        int last=find_last_commit();
+        int first=10001;
+        for(int i=last;i>=first;i--){
+            char path [MAX_FILENAME_LEN] = ".neogit\\commits\\";
+            char filename [MAX_FILENAME_LEN];
+            sprintf(filename,"%d",i);
+            strcat(path,filename);
+            strcat(path,"\\");
+            strcat(path,filename);
+            strcat(path,".txt");
+            FILE * file = fopen(path,"r");
+            if(file == NULL)
+                return 1;
+            char line[MAX_FILENAME_LEN];
+            while(fgets(line,sizeof(line),file)){
+                fprintf(stdout,"%s",line);
+            }
+            fprintf(stdout,"\n");
+            fclose(file);
+        }
+    }
+}
 int main(int argc, char *argv[]) {
     if(argc<2){
         perror("Please input a valid command:");
@@ -613,7 +639,7 @@ int main(int argc, char *argv[]) {
         run_reset(argc,argv); 
     }
     else if(!strcmp(argv[1], "log")){
-        fprintf(stdout,"log command has been inputed!\n");   
+        run_log(argc,argv);   
     }
     else if(!strcmp(argv[1], "branch")){
         run_branch(argc,argv);  
