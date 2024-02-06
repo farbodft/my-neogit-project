@@ -38,6 +38,7 @@ int run_set(int ,char **);
 int run_replace(int ,char **);
 int run_remove(int ,char **);
 int run_log(int ,char **);
+int commit_branch(int ,char *);
 
 //function to print given command
 void print_command(int argc,char * argv[]){
@@ -607,7 +608,7 @@ int run_log(int argc,char * argv[]){
     }
     else if(!strcmp(argv[2],"-n")){
         int last=find_last_commit();
-        int n=atoi(argv[3]);
+        int n=atoi(argv[3]);//to cast string into integer
         int first=last+1-n;
         for(int i=last;i>=first;i--){
             char path [MAX_FILENAME_LEN] = ".neogit\\commits\\";
@@ -629,6 +630,58 @@ int run_log(int argc,char * argv[]){
         }
         return 0;   
     }
+    else if(!strcmp(argv[2],"-branch")){
+        int last=find_last_commit();
+        int first=10001;
+        for(int i=last;i>=first;i--){
+            if(commit_branch(i,argv[3]) != 0)
+                continue;
+            char path [MAX_FILENAME_LEN] = ".neogit\\commits\\";
+            char filename [MAX_FILENAME_LEN];
+            sprintf(filename,"%d",i);
+            strcat(path,filename);
+            strcat(path,"\\");
+            strcat(path,filename);
+            strcat(path,".txt");
+            FILE * file = fopen(path,"r");
+            if(file == NULL)
+                return 1;
+            char line[MAX_FILENAME_LEN];
+            while(fgets(line,sizeof(line),file)){
+                fprintf(stdout,"%s",line);
+            }
+            fprintf(stdout,"\n");
+            fclose(file);
+        }
+        return 0;
+    }
+}
+
+//function to check the commit branch
+int commit_branch(int commitid,char * branch_t){
+    char path [MAX_FILENAME_LEN] = ".neogit\\commits\\";
+        char filename [MAX_FILENAME_LEN];
+        sprintf(filename,"%d",commitid);
+        strcat(path,filename);
+        strcat(path,"\\");
+        strcat(path,filename);
+        strcat(path,".txt");
+        FILE * file = fopen(path,"r");
+        if(file == NULL)
+           return 1;
+        char line [MAX_FILENAME_LEN];
+        char branch [MAX_FILENAME_LEN];
+        for(int j=0;j<5;j++){
+        fgets(line,sizeof(line),file);
+        }
+        strcpy(branch,line);
+        backspace(branch,7);
+        int len=strlen(branch);
+        branch[len-1]='\0';
+        fclose(file);
+        if(strcmp(branch,branch_t)==0)
+            return 0;
+        return 1;
 }
 int main(int argc, char *argv[]) {
     if(argc<2){
